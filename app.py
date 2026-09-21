@@ -50,16 +50,16 @@ def mover_para_lixeira(caminho_origem, nome_arquivo):
         caminho_lixeira = os.path.join(LIXEIRA_DIR, f"{base}_{int(time.time())}{ext}")
     shutil.move(caminho_origem, caminho_lixeira)
 
-# Estilização CSS ultra-compacta para a sidebar
+# Estilização CSS ajustada (com mais espaço no topo da área principal)
 st.markdown("""
     <style>
-    /* Estilo compacto da página principal */
+    /* Ajuste de margem superior para o título não cortar */
     .block-container {
-        padding-top: 1.2rem !important;
-        padding-bottom: 0.5rem !important;
+        padding-top: 3rem !important;
+        padding-bottom: 1rem !important;
     }
     
-    /* Compactar a Barra Lateral (Sidebar) para caber o botão SAIR */
+    /* Compactar a Barra Lateral (Sidebar) para manter o botão SAIR visível */
     section[data-testid="stSidebar"] .block-container {
         padding-top: 0.8rem !important;
         padding-bottom: 0.8rem !important;
