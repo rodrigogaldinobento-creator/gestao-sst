@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Inicializar o repositório de pastas e arquivos no session_state
+# Inicializar o repositório de pastas e arquivos
 if 'pastas_revisadas' not in st.session_state:
     st.session_state['pastas_revisadas'] = {
         "Auro": {},
@@ -19,58 +19,47 @@ if 'pastas_revisadas' not in st.session_state:
     }
 
 # ==========================================
-# 2. ESTILIZAÇÃO CSS CUSTOMIZADA (SIDEBAR FIXA E VISÍVEL)
+# 2. ESTILIZAÇÃO CSS CUSTOMIZADA (SEM OCULTAR A SIDEBAR)
 # ==========================================
 st.markdown("""
     <style>
-    /* Esconde elementos padrões do Streamlit */
+    /* Oculta os cabeçalhos padrão do Streamlit */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* FORÇA A SIDEBAR A FICAR VISÍVEL E FIXA */
-    [data-testid="stSidebar"] {
-        display: block !important;
-        visibility: visible !important;
+    /* Garante exibição da sidebar */
+    section[data-testid="stSidebar"] {
         background-color: #0d1b2a !important;
-        min-width: 280px !important;
-        max-width: 280px !important;
+        width: 280px !important;
     }
     
-    /* Garante visibilidade do texto dentro da sidebar */
-    [data-testid="stSidebar"] * {
+    section[data-testid="stSidebar"] * {
         color: #ffffff !important;
     }
 
-    /* Esconde apenas o botão de fechar a sidebar para mantê-la travada */
-    [data-testid="stSidebarCollapseButton"] {
-        display: none !important;
-    }
-    
     .block-container {
-        padding-top: 0.5rem !important;
-        padding-bottom: 2rem !important;
+        padding-top: 1rem !important;
+        padding-bottom: 3rem !important;
     }
 
-    /* Estilização de inputs e botões da sidebar */
-    [data-testid="stSidebar"] input {
+    /* Campos e Botões na Sidebar */
+    section[data-testid="stSidebar"] input {
         color: #000000 !important;
-        height: 35px;
     }
-    [data-testid="stSidebar"] .stButton > button {
+    section[data-testid="stSidebar"] .stButton > button {
         background-color: #1b3a4b;
         color: #ffffff !important;
         border: 1px solid #274c5e;
         border-radius: 6px;
         width: 100%;
-        padding: 4px 10px;
     }
-    
+
     /* Cabeçalho Superior Fixo */
     .top-header {
         background-color: #0b1a2a;
         padding: 10px 20px;
-        margin-top: -0.5rem;
+        margin-top: -1rem;
         margin-left: -5rem;
         margin-right: -5rem;
         margin-bottom: 20px;
@@ -132,7 +121,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. BARRA LATERAL (SIDEBAR FIXA E COMPACTA)
+# 3. BARRA LATERAL (SIDEBAR)
 # ==========================================
 with st.sidebar:
     st.markdown("### 🌾 Lavouras Hasegawa")
@@ -156,7 +145,7 @@ with st.sidebar:
             "📤 Upload de Documentos",
             "♻️ Restauração (Setor Oculto)"
         ],
-        index=3, # Padrão: Documentos Revisados
+        index=3,
         label_visibility="collapsed"
     )
     
@@ -186,7 +175,6 @@ if menu_selecionado == "📂 Documentos Revisados":
     
     st.title("📁 Repositório de Documentos Revisados")
     
-    # Criar Nova Subpasta
     with st.expander("➕ Criar Nova Pasta em Revisadas"):
         col_pai, col_nome, col_btn = st.columns([2, 3, 1])
         
@@ -213,7 +201,6 @@ if menu_selecionado == "📂 Documentos Revisados":
 
     st.markdown("##### **Selecione a Categoria/Pasta:**")
     
-    # Seleção de Pastas
     col_resp, col_sub = st.columns(2)
     
     with col_resp:
@@ -229,7 +216,6 @@ if menu_selecionado == "📂 Documentos Revisados":
 
     st.markdown("---")
 
-    # Exibição de Conteúdo e Arquivos
     if subpasta_sel:
         st.markdown(f"#### 📂 Arquivos em: **{responsavel_sel} / {subpasta_sel}**")
         arquivos = st.session_state['pastas_revisadas'][responsavel_sel][subpasta_sel]
