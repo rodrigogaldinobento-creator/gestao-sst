@@ -1,45 +1,54 @@
 import streamlit as st
 
 # ==========================================
-# 1. CONFIGURAÇÃO DA PÁGINA
+# 1. CONFIGURAÇÃO DA PÁGINA E ESTADO
 # ==========================================
 st.set_page_config(
     page_title="Gestão SST - Lavouras Hasegawa",
     page_icon="🛡️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded" # Garante a sidebar aberta
 )
 
+# Inicializar o repositório de pastas e arquivos no session_state
+if 'pastas_revisadas' not in st.session_state:
+    st.session_state['pastas_revisadas'] = {
+        "Auro": {},      # Exemplo: {"Treinamentos": [lista de arquivos]}
+        "Hayato": {},
+        "Gabriely": {}
+    }
+
 # ==========================================
-# 2. ESTILIZAÇÃO CSS CUSTOMIZADA (LAYOUT AZUL ESCURO & COMPACTO)
+# 2. ESTILIZAÇÃO CSS CUSTOMIZADA (SIDEBAR FIXA E LAYOUT MODERNO)
 # ==========================================
 st.markdown("""
     <style>
-    /* Oculta elementos padrão do Streamlit */
+    /* Oculta os elementos padrão do Streamlit */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* Reduz espaçamentos do topo para caber tudo na tela */
+    /* Esconde o botão de recolher/fechar a barra lateral (DEIXA FIXA) */
+    [data-testid="stSidebarCollapseButton"] {
+        display: none !important;
+    }
+    
+    /* Configurações da barra lateral */
+    [data-testid="stSidebar"] {
+        background-color: #0d1b2a !important;
+        min-width: 280px !important;
+        max-width: 280px !important;
+    }
+    [data-testid="stSidebar"] * {
+        color: #ffffff !important;
+    }
+    
     .block-container {
         padding-top: 0.5rem !important;
         padding-bottom: 2rem !important;
     }
 
-    /* Estilização da Barra Lateral (Sidebar Escura Compacta) */
-    [data-testid="stSidebar"] {
-        background-color: #0d1b2a;
-        color: #ffffff;
-    }
-    [data-testid="stSidebar"] * {
-        color: #ffffff !important;
-    }
-    [data-testid="stSidebar"] .block-container {
-        padding-top: 1rem !important;
-        padding-bottom: 1rem !important;
-    }
-    
-    /* Ajuste nos campos e botões da Sidebar */
+    /* Campos e Botões na Sidebar */
     [data-testid="stSidebar"] input {
         color: #000000 !important;
         height: 35px;
@@ -51,15 +60,6 @@ st.markdown("""
         border-radius: 6px;
         width: 100%;
         padding: 4px 10px;
-    }
-    [data-testid="stSidebar"] .stButton > button:hover {
-        background-color: #274c5e;
-    }
-
-    /* Reduz o espaçamento dos itens do Radio na Sidebar */
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
-        font-size: 0.9rem;
-        margin-bottom: 2px;
     }
     
     /* Cabeçalho Superior Fixo */
@@ -95,7 +95,7 @@ st.markdown("""
         gap: 8px;
     }
 
-    /* Card para pasta sem arquivos */
+    /* Cards Informativos */
     .empty-folder-card {
         background-color: #f0f7ff;
         border: 1px solid #bae6fd;
@@ -128,17 +128,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. GERENCIAMENTO DE ESTADO (PASTAS VAZIAS)
-# ==========================================
-if 'pastas_revisadas' not in st.session_state:
-    st.session_state['pastas_revisadas'] = {
-        "Auro": [],
-        "Hayato": [],
-        "Gabriely": []
-    }
-
-# ==========================================
-# 4. BARRA LATERAL (SIDEBAR COMPACTA)
+# 3. BARRA LATERAL (SIDEBAR FIXA E COMPACTA)
 # ==========================================
 with st.sidebar:
     st.markdown("### 🌾 Lavouras Hasegawa")
@@ -170,7 +160,7 @@ with st.sidebar:
         st.info("Sessão finalizada.")
 
 # ==========================================
-# 5. CABEÇALHO SUPERIOR
+# 4. CABEÇALHO SUPERIOR
 # ==========================================
 st.markdown("""
     <div class="top-header">
@@ -186,18 +176,18 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 6. CONTEÚDO PRINCIPAL
+# 5. MÓDULO: DOCUMENTOS REVISADOS
 # ==========================================
 if menu_selecionado == "📂 Documentos Revisados":
     
     st.title("📁 Repositório de Documentos Revisados")
     
-    # Form para Criar Nova Subpasta
+    # Criar Nova Subpasta
     with st.expander("➕ Criar Nova Pasta em Revisadas"):
         col_pai, col_nome, col_btn = st.columns([2, 3, 1])
         
         with col_pai:
-            pasta_pai = st.selectbox("Pasta Principal (Responsável):", ["Auro", "Hayato", "Gabriely"])
+            pasta_pai = st.selectbox("Pasta Principal (Responsável):", ["Auro", "Hayato", "Gabriely"], key="pai_criar")
             
         with col_nome:
             nova_subpasta = st.text_input("Nome da Nova Pasta:")
@@ -206,10 +196,11 @@ if menu_selecionado == "📂 Documentos Revisados":
             st.write("")
             st.write("")
             if st.button("Criar Pasta", use_container_width=True):
-                if nova_subpasta.strip():
-                    if nova_subpasta not in st.session_state['pastas_revisadas'][pasta_pai]:
-                        st.session_state['pastas_revisadas'][pasta_pai].append(nova_subpasta.strip())
-                        st.success(f"Pasta '{nova_subpasta}' criada em {pasta_pai}!")
+                nome_limpo = nova_subpasta.strip()
+                if nome_limpo:
+                    if nome_limpo not in st.session_state['pastas_revisadas'][pasta_pai]:
+                        st.session_state['pastas_revisadas'][pasta_pai][nome_limpo] = []
+                        st.success(f"Pasta '{nome_limpo}' criada em {pasta_pai}!")
                         st.rerun()
                     else:
                         st.warning("Esta pasta já existe.")
@@ -222,38 +213,75 @@ if menu_selecionado == "📂 Documentos Revisados":
     col_resp, col_sub = st.columns(2)
     
     with col_resp:
-        responsavel_sel = st.selectbox("Pasta Principal (Responsável):", ["Auro", "Hayato", "Gabriely"])
+        responsavel_sel = st.selectbox("Pasta Principal (Responsável):", ["Auro", "Hayato", "Gabriely"], key="resp_ver")
         
     with col_sub:
-        lista_subpastas = st.session_state['pastas_revisadas'][responsavel_sel]
-        if lista_subpastas:
-            subpasta_sel = st.selectbox(f"Subpasta de {responsavel_sel}:", options=lista_subpastas)
+        subpastas_existentes = list(st.session_state['pastas_revisadas'][responsavel_sel].keys())
+        if subpastas_existentes:
+            subpasta_sel = st.selectbox(f"Subpasta de {responsavel_sel}:", options=subpastas_existentes)
         else:
             subpasta_sel = None
             st.selectbox(f"Subpasta de {responsavel_sel}:", options=["Nenhuma pasta criada"], disabled=True)
 
     st.markdown("---")
 
-    # Exibição do Conteúdo da Pasta
+    # Exibição de Conteúdo e Arquivos
     if subpasta_sel:
         st.markdown(f"#### 📂 Arquivos em: **{responsavel_sel} / {subpasta_sel}**")
+        arquivos = st.session_state['pastas_revisadas'][responsavel_sel][subpasta_sel]
+        
+        if arquivos:
+            for arq in arquivos:
+                st.markdown(f"📄 **{arq['nome']}** _({arq['tamanho']} bytes)_")
+        else:
+            st.markdown("""
+                <div class="empty-folder-card">
+                    <span style="font-size: 1.5rem;">📄</span>
+                    <div>
+                        <strong>Nenhum arquivo encontrado nesta pasta.</strong><br>
+                        <span style="font-size: 0.85rem; opacity: 0.85;">Adicione documentos navegando até a opção "Upload de Documentos" no menu lateral.</span>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
     else:
-        st.markdown(f"#### 📂 Arquivos em: **{responsavel_sel}**")
+        st.info(f"Crie uma pasta em '{responsavel_sel}' para começar a enviar e visualizar documentos.")
+
+# ==========================================
+# 6. MÓDULO: UPLOAD DE DOCUMENTOS
+# ==========================================
+elif menu_selecionado == "📤 Upload de Documentos":
+    st.title("📤 Envio de Documentos")
     
-    # Card para estado sem arquivos
-    st.markdown("""
-        <div class="empty-folder-card">
-            <span style="font-size: 1.5rem;">📄</span>
-            <div>
-                <strong>Nenhum arquivo encontrado nesta pasta.</strong><br>
-                <span style="font-size: 0.85rem; opacity: 0.85;">Adicione documentos navegando até a opção "Upload de Documentos" no menu lateral.</span>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+    col_u1, col_u2 = st.columns(2)
+    
+    with col_u1:
+        resp_upload = st.selectbox("Selecione o Responsável:", ["Auro", "Hayato", "Gabriely"], key="upload_resp")
+        
+    with col_u2:
+        subpastas_upload = list(st.session_state['pastas_revisadas'][resp_upload].keys())
+        if subpastas_upload:
+            sub_upload = st.selectbox(f"Selecione a Pasta de Destino:", options=subpastas_upload, key="upload_sub")
+        else:
+            sub_upload = None
+            st.selectbox("Selecione a Pasta de Destino:", options=["Nenhuma pasta cadastrada"], disabled=True)
+            st.warning(f"Crie primeiro uma pasta dentro de '{resp_upload}' para enviar arquivos.")
+
+    if sub_upload:
+        uploaded_files = st.file_uploader(
+            f"Escolha os arquivos para anexar em {resp_upload} / {sub_upload}:",
+            accept_multiple_files=True
+        )
+        
+        if uploaded_files:
+            if st.button("Confirmar e Salvar Documentos"):
+                for file in uploaded_files:
+                    dados_arquivo = {"nome": file.name, "tamanho": file.size}
+                    st.session_state['pastas_revisadas'][resp_upload][sub_upload].append(dados_arquivo)
+                st.success(f"{len(uploaded_files)} arquivo(s) enviado(s) com sucesso para {resp_upload} / {sub_upload}!")
 
 else:
     st.title(menu_selecionado)
-    st.info("Módulo em desenvolvimento ou selecione 'Documentos Revisados' no menu lateral.")
+    st.info("Módulo em desenvolvimento.")
 
 # ==========================================
 # 7. RODAPÉ FIXO
