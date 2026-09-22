@@ -1,46 +1,50 @@
 import streamlit as st
 
 # ==========================================
-# 1. CONFIGURAÇÃO DA PÁGINA E ESTADO
+# 1. CONFIGURAÇÃO DA PÁGINA
 # ==========================================
 st.set_page_config(
     page_title="Gestão SST - Lavouras Hasegawa",
     page_icon="🛡️",
     layout="wide",
-    initial_sidebar_state="expanded" # Garante a sidebar aberta
+    initial_sidebar_state="expanded"
 )
 
 # Inicializar o repositório de pastas e arquivos no session_state
 if 'pastas_revisadas' not in st.session_state:
     st.session_state['pastas_revisadas'] = {
-        "Auro": {},      # Exemplo: {"Treinamentos": [lista de arquivos]}
+        "Auro": {},
         "Hayato": {},
         "Gabriely": {}
     }
 
 # ==========================================
-# 2. ESTILIZAÇÃO CSS CUSTOMIZADA (SIDEBAR FIXA E LAYOUT MODERNO)
+# 2. ESTILIZAÇÃO CSS CUSTOMIZADA (SIDEBAR FIXA E VISÍVEL)
 # ==========================================
 st.markdown("""
     <style>
-    /* Oculta os elementos padrão do Streamlit */
+    /* Esconde elementos padrões do Streamlit */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* Esconde o botão de recolher/fechar a barra lateral (DEIXA FIXA) */
-    [data-testid="stSidebarCollapseButton"] {
-        display: none !important;
-    }
-    
-    /* Configurações da barra lateral */
+    /* FORÇA A SIDEBAR A FICAR VISÍVEL E FIXA */
     [data-testid="stSidebar"] {
+        display: block !important;
+        visibility: visible !important;
         background-color: #0d1b2a !important;
         min-width: 280px !important;
         max-width: 280px !important;
     }
+    
+    /* Garante visibilidade do texto dentro da sidebar */
     [data-testid="stSidebar"] * {
         color: #ffffff !important;
+    }
+
+    /* Esconde apenas o botão de fechar a sidebar para mantê-la travada */
+    [data-testid="stSidebarCollapseButton"] {
+        display: none !important;
     }
     
     .block-container {
@@ -48,7 +52,7 @@ st.markdown("""
         padding-bottom: 2rem !important;
     }
 
-    /* Campos e Botões na Sidebar */
+    /* Estilização de inputs e botões da sidebar */
     [data-testid="stSidebar"] input {
         color: #000000 !important;
         height: 35px;
