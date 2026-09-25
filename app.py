@@ -1,4 +1,5 @@
 import streamlit as st
+import datetime
 
 # ==========================================
 # 1. CONFIGURAÇÃO DA PÁGINA
@@ -10,7 +11,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Inicializar o repositório de pastas e arquivos no session_state
+# ==========================================
+# 2. INICIALIZAÇÃO DE ESTADOS (SESSÃO)
+# ==========================================
+# Repositório de Pastas
 if 'pastas_revisadas' not in st.session_state:
     st.session_state['pastas_revisadas'] = {
         "Auro": {},
@@ -18,27 +22,39 @@ if 'pastas_revisadas' not in st.session_state:
         "Gabriely": {}
     }
 
+# Cadastro Inicial de Colaboradores (Exemplo de Teste)
+if 'colaboradores' not in st.session_state:
+    st.session_state['colaboradores'] = [
+        {"nome": "Rodrigo Galdino Bento", "funcao": "Técnico em Segurança do Trabalho (TST)", "setor": "EQUIPE PLANTIO DE BATATAS"},
+        {"nome": "Márcia Bueno Machado", "funcao": "Auxiliar Administrativo / SST", "setor": "EQUIPE PLANTIO DE BATATAS"},
+        {"nome": "Adenir De Matos Machado", "funcao": "Chefe de Pátio", "setor": "EQUIPE PLANTIO DE BATATAS"},
+        {"nome": "Alex de Jesus Daum", "funcao": "Tratorista", "setor": "EQUIPE PLANTIO DE BATATAS"},
+        {"nome": "Alessandro Pires Ribeiro", "funcao": "Trab. Rural Masc.", "setor": "EQUIPE PLANTIO DE BATATAS"}
+    ]
+
+# Lista de DDS Criados
+if 'historico_dds' not in st.session_state:
+    st.session_state['historico_dds'] = []
+
 # ==========================================
-# 2. ESTILIZAÇÃO CSS CUSTOMIZADA (FORÇA EXIBIÇÃO DA SIDEBAR)
+# 3. ESTILIZAÇÃO CSS CUSTOMIZADA
 # ==========================================
 st.markdown("""
     <style>
-    /* Oculta apenas menus/rodapés padrão sem esconder botões do sistema */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* FORÇA A BARRA LATERAL A FICAR SEMPRE VISÍVEL E ABERTA */
     [data-testid="stSidebar"] {
         display: block !important;
         visibility: visible !important;
-        transform: none !important;
         background-color: #0d1b2a !important;
         min-width: 280px !important;
         max-width: 280px !important;
     }
-    
-    /* Ajusta a margem do conteúdo principal para não sobrepor a barra lateral */
+    [data-testid="stSidebar"] * {
+        color: #ffffff !important;
+    }
     .main .block-container {
         margin-left: 280px !important;
         padding-top: 0.5rem !important;
@@ -46,22 +62,6 @@ st.markdown("""
         max-width: calc(100% - 280px) !important;
     }
 
-    /* Cores e textos da Sidebar */
-    [data-testid="stSidebar"] * {
-        color: #ffffff !important;
-    }
-    [data-testid="stSidebar"] input {
-        color: #000000 !important;
-    }
-    [data-testid="stSidebar"] .stButton > button {
-        background-color: #1b3a4b;
-        color: #ffffff !important;
-        border: 1px solid #274c5e;
-        border-radius: 6px;
-        width: 100%;
-    }
-
-    /* Cabeçalho Superior Fixo */
     .top-header {
         background-color: #0b1a2a;
         padding: 10px 20px;
@@ -72,60 +72,52 @@ st.markdown("""
         justify-content: space-between;
         border-bottom: 2px solid #1e3a5f;
     }
-    .top-header-title {
-        color: #ffffff;
-        font-size: 1.15rem;
-        font-weight: 700;
-        margin: 0;
-    }
-    .top-header-sub {
-        color: #94a3b8;
-        font-size: 0.78rem;
-        margin: 0;
-    }
-    .top-header-user {
-        color: #ffffff;
-        font-weight: 600;
-        font-size: 0.9rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
+    .top-header-title { color: #ffffff; font-size: 1.15rem; font-weight: 700; margin: 0; }
+    .top-header-sub { color: #94a3b8; font-size: 0.78rem; margin: 0; }
+    .top-header-user { color: #ffffff; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
 
-    /* Cards Informativos */
-    .empty-folder-card {
-        background-color: #f0f7ff;
-        border: 1px solid #bae6fd;
-        border-radius: 8px;
-        padding: 18px 22px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: #0284c7;
+    /* Estilo da Folha Padrão de DDS */
+    .dds-paper {
+        background-color: #ffffff;
+        border: 2px solid #000000;
+        padding: 20px;
+        color: #000000 !important;
+        font-family: Arial, sans-serif;
         margin-top: 15px;
     }
-
-    /* Rodapé Fixo */
-    .custom-footer {
-        position: fixed;
-        bottom: 0;
-        left: 0;
+    .dds-header-table {
         width: 100%;
-        background-color: #f8fafc;
-        border-top: 1px solid #e2e8f0;
-        padding: 6px 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 0.75rem;
-        color: #64748b;
-        z-index: 999;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+    }
+    .dds-header-table td {
+        border: 1px solid #000;
+        padding: 6px 10px;
+        text-align: center;
+    }
+    .dds-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+    .dds-table th, .dds-table td {
+        border: 1px solid #000;
+        padding: 6px;
+        font-size: 0.85rem;
+        text-align: left;
+    }
+
+    .custom-footer {
+        position: fixed; bottom: 0; left: 0; width: 100%;
+        background-color: #f8fafc; border-top: 1px solid #e2e8f0;
+        padding: 6px 20px; display: flex; justify-content: space-between;
+        font-size: 0.75rem; color: #64748b; z-index: 999;
     }
     </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. BARRA LATERAL (SIDEBAR FIXA)
+# 4. BARRA LATERAL (SIDEBAR)
 # ==========================================
 with st.sidebar:
     st.markdown("### 🌾 Lavouras Hasegawa")
@@ -136,28 +128,24 @@ with st.sidebar:
         st.rerun()
         
     st.text_input("🔑 Senha de Exclusão:", type="password", key="senha_exclusao")
-    
     st.markdown("**Navegação**")
     
     menu_selecionado = st.radio(
         "Navegação",
         options=[
             "🏠 Início & Pontos Fortes SST",
-            "📋 Temas Obrigatórios (Rascunho)",
-            "📁 Documentos Não Revisados",
+            "📝 Emissão de DDS",
+            "👥 Cadastro de Colaboradores",
             "📂 Documentos Revisados",
             "📤 Upload de Documentos",
             "♻️ Restauração (Setor Oculto)"
         ],
-        index=3,
+        index=1,
         label_visibility="collapsed"
     )
-    
-    if st.button("🚪 Sair"):
-        st.info("Sessão finalizada.")
 
 # ==========================================
-# 4. CABEÇALHO SUPERIOR
+# 5. CABEÇALHO SUPERIOR
 # ==========================================
 st.markdown("""
     <div class="top-header">
@@ -173,112 +161,161 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 5. MÓDULO: DOCUMENTOS REVISADOS
+# 6. MÓDULO: EMISSÃO DE DDS
 # ==========================================
-if menu_selecionado == "📂 Documentos Revisados":
+if menu_selecionado == "📝 Emissão de DDS":
+    st.title("📝 Gerador de DDS (Registro de Treinamento)")
     
-    st.title("📁 Repositório de Documentos Revisados")
-    
-    with st.expander("➕ Criar Nova Pasta em Revisadas"):
-        col_pai, col_nome, col_btn = st.columns([2, 3, 1])
+    with st.form("form_dds"):
+        st.subheader("1. Informações do Treinamento")
+        col_d1, col_d2, col_d3 = st.columns(3)
         
-        with col_pai:
-            pasta_pai = st.selectbox("Pasta Principal (Responsável):", ["Auro", "Hayato", "Gabriely"], key="pai_criar")
+        with col_d1:
+            setor = st.selectbox("Setor / Equipe:", ["EQUIPE PLANTIO DE BATATAS", "EQUIPE DE COLHEITA", "ADMINISTRATIVO", "MECANIZAÇÃO"])[cite: 10]
+            instrutor = st.text_input("Instrutor(es):", value="Rodrigo Galdino Bento - TST")[cite: 10]
             
-        with col_nome:
-            nova_subpasta = st.text_input("Nome da Nova Pasta:")
+        with col_d2:
+            data_dds = st.date_input("Data do Treinamento:", datetime.date.today())[cite: 10]
+            carga_horaria = st.text_input("Carga Horária:", value="15 min")[cite: 10]
             
-        with col_btn:
-            st.write("")
-            st.write("")
-            if st.button("Criar Pasta", use_container_width=True):
-                nome_limpo = nova_subpasta.strip()
-                if nome_limpo:
-                    if nome_limpo not in st.session_state['pastas_revisadas'][pasta_pai]:
-                        st.session_state['pastas_revisadas'][pasta_pai][nome_limpo] = []
-                        st.success(f"Pasta '{nome_limpo}' criada em {pasta_pai}!")
-                        st.rerun()
-                    else:
-                        st.warning("Esta pasta já existe.")
-                else:
-                    st.error("Digite um nome válido.")
-
-    st.markdown("##### **Selecione a Categoria/Pasta:**")
-    
-    col_resp, col_sub = st.columns(2)
-    
-    with col_resp:
-        responsavel_sel = st.selectbox("Pasta Principal (Responsável):", ["Auro", "Hayato", "Gabriely"], key="resp_ver")
+        with col_d3:
+            responsavel_salvar = st.selectbox("Salvar na pasta de:", ["Auro", "Hayato", "Gabriely"])
         
-    with col_sub:
-        subpastas_existentes = list(st.session_state['pastas_revisadas'][responsavel_sel].keys())
-        if subpastas_existentes:
-            subpasta_sel = st.selectbox(f"Subpasta de {responsavel_sel}:", options=subpastas_existentes)
-        else:
-            subpasta_sel = None
-            st.selectbox(f"Subpasta de {responsavel_sel}:", options=["Nenhuma pasta criada"], disabled=True)
-
-    st.markdown("---")
-
-    if subpasta_sel:
-        st.markdown(f"#### 📂 Arquivos em: **{responsavel_sel} / {subpasta_sel}**")
-        arquivos = st.session_state['pastas_revisadas'][responsavel_sel][subpasta_sel]
-        
-        if arquivos:
-            for arq in arquivos:
-                st.markdown(f"📄 **{arq['nome']}** _({arq['tamanho']} bytes)_")
-        else:
-            st.markdown("""
-                <div class="empty-folder-card">
-                    <span style="font-size: 1.5rem;">📄</span>
-                    <div>
-                        <strong>Nenhum arquivo encontrado nesta pasta.</strong><br>
-                        <span style="font-size: 0.85rem; opacity: 0.85;">Adicione documentos navegando até a opção "Upload de Documentos" no menu lateral.</span>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
-    else:
-        st.info(f"Crie uma pasta em '{responsavel_sel}' para começar a enviar e visualizar documentos.")
-
-# ==========================================
-# 6. MÓDULO: UPLOAD DE DOCUMENTOS
-# ==========================================
-elif menu_selecionado == "📤 Upload de Documentos":
-    st.title("📤 Envio de Documentos")
-    
-    col_u1, col_u2 = st.columns(2)
-    
-    with col_u1:
-        resp_upload = st.selectbox("Selecione o Responsável:", ["Auro", "Hayato", "Gabriely"], key="upload_resp")
-        
-    with col_u2:
-        subpastas_upload = list(st.session_state['pastas_revisadas'][resp_upload].keys())
-        if subpastas_upload:
-            sub_upload = st.selectbox(f"Selecione a Pasta de Destino:", options=subpastas_upload, key="upload_sub")
-        else:
-            sub_upload = None
-            st.selectbox("Selecione a Pasta de Destino:", options=["Nenhuma pasta cadastrada"], disabled=True)
-            st.warning(f"Crie primeiro uma pasta dentro de '{resp_upload}' para enviar arquivos.")
-
-    if sub_upload:
-        uploaded_files = st.file_uploader(
-            f"Escolha os arquivos para anexar em {resp_upload} / {sub_upload}:",
-            accept_multiple_files=True
+        assuntos = st.text_area(
+            "Assuntos Abordados:",
+            value="CUIDADOS E PROCEDIMENTOS CORRETOS DURANTE O PLANTIO; USO CORRETO DE EPIS, ATENÇÃO DURANTE ATIVIDADES PLANTIO E MANUTENÇÕES, CUIDADOS COM USO DE AGROTÓXICOS."[cite: 10],
+            height=80
         )
         
-        if uploaded_files:
-            if st.button("Confirmar e Salvar Documentos"):
-                for file in uploaded_files:
-                    dados_arquivo = {"nome": file.name, "tamanho": file.size}
-                    st.session_state['pastas_revisadas'][resp_upload][sub_upload].append(dados_arquivo)
-                st.success(f"{len(uploaded_files)} arquivo(s) enviado(s) com sucesso para {resp_upload} / {sub_upload}!")
+        st.markdown("---")
+        st.subheader("2. Filtro de Colaboradores por Função")
+        
+        funcoes_disponiveis = list(set([c["funcao"] for c in st.session_state['colaboradores']]))
+        funcoes_selecionadas = st.multiselect("Filtrar por Função(ões):", options=funcoes_disponiveis, default=funcoes_disponiveis)
+        
+        # Filtrar colaboradores ativos pelas funções selecionadas
+        colabs_filtrados = [c for c in st.session_state['colaboradores'] if c["funcao"] in funcoes_selecionadas]
+        
+        st.markdown("##### **Lista de Presença:**")
+        
+        # Checkboxes de presença
+        presencas = {}
+        cols_pres = st.columns(2)
+        for idx, colab in enumerate(colabs_filtrados):
+            col = cols_pres[idx % 2]
+            presencas[colab["nome"]] = col.checkbox(
+                f"{colab['nome']} - *{colab['funcao']}*", 
+                value=True, 
+                key=f"pres_{idx}"
+            )[cite: 10]
+            
+        gerar_btn = st.form_submit_button("📄 Gerar e Imprimir Registro de DDS")
+
+    # Exibição do Documento Formatado estilo Folha Oficial
+    if gerar_btn:
+        st.markdown("---")
+        st.success("DDS gerado com sucesso!")
+        
+        # Tabela HTML para simular a folha física da imagem
+        html_folha = f"""
+        <div class="dds-paper">
+            <table class="dds-header-table">
+                <tr>
+                    <td style="width: 20%; font-weight: bold;">LAVOURAS HASEGAWA</td>
+                    <td style="width: 60%; font-weight: bold;">
+                        REGISTRO DE TREINAMENTO PADRÃO<br>
+                        <small>TIPO DE TREINAMENTO: DDS</small>
+                    </td>
+                    <td style="width: 20%; font-weight: bold;">SEGURANÇA DO TRABALHO</td>
+                </tr>
+            </table>
+            
+            <table class="dds-table">
+                <tr>
+                    <td colspan="3"><b>ASSUNTOS ABORDADOS:</b> {assuntos}</td>
+                    <td><b>SETOR:</b> {setor}</td>
+                </tr>
+                <tr>
+                    <td style="width: 40%;"><b>INSTRUTOR(ES):</b> {instrutor}</td>
+                    <td style="width: 20%;"><b>DATA:</b> {data_dds.strftime('%d/%m/%Y')}</td>
+                    <td colspan="2" style="width: 40%;"><b>CARGA HORÁRIA:</b> {carga_horaria}</td>
+                </tr>
+            </table>
+
+            <table class="dds-table">
+                <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="width: 45%;">Nome do Colaborador</th>
+                        <th style="width: 35%;">Função</th>
+                        <th style="width: 20%;">Assinatura</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+        
+        for colab in colabs_filtrados:
+            if presencas.get(colab["nome"]):
+                html_folha += f"""
+                <tr>
+                    <td>{colab['nome']}</td>
+                    <td>{colab['funcao']}</td>
+                    <td style="text-align: center; color: #888;">___________________</td>
+                </tr>
+                """
+                
+        html_folha += """
+                </tbody>
+            </table>
+        </div>
+        """
+        
+        st.markdown(html_folha, unsafe_allow_html=True)
+        
+        # Salvar automaticamente no estado do repositório
+        nome_doc = f"DDS_{data_dds.strftime('%Y%m%d')}_{setor.replace(' ', '_')}.pdf"
+        if "DDS_Emitidos" not in st.session_state['pastas_revisadas'][responsavel_salvar]:
+            st.session_state['pastas_revisadas'][responsavel_salvar]["DDS_Emitidos"] = []
+            
+        st.session_state['pastas_revisadas'][responsavel_salvar]["DDS_Emitidos"].append({
+            "nome": nome_doc,
+            "tamanho": 1024
+        })
+        st.info(f"💾 Documento gravado automaticamente na pasta: **{responsavel_salvar} / DDS_Emitidos**")
+
+# ==========================================
+# 7. MÓDULO: CADASTRO DE COLABORADORES
+# ==========================================
+elif menu_selecionado == "👥 Cadastro de Colaboradores":
+    st.title("👥 Cadastro Base de Funcionários")
+    
+    with st.expander("➕ Cadastrar Novo Colaborador"):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            novo_nome = st.text_input("Nome do Colaborador:")
+        with c2:
+            nova_funcao = st.text_input("Função / Cargo:")
+        with c3:
+            novo_setor = st.selectbox("Setor:", ["EQUIPE PLANTIO DE BATATAS", "EQUIPE DE COLHEITA", "ADMINISTRATIVO", "MECANIZAÇÃO"])
+            
+        if st.button("Cadastrar Funcionário"):
+            if novo_nome and nova_funcao:
+                st.session_state['colaboradores'].append({
+                    "nome": novo_nome,
+                    "funcao": nova_funcao,
+                    "setor": novo_setor
+                })
+                st.success(f"Colaborador {novo_nome} cadastrado com sucesso!")
+                st.rerun()
+
+    st.markdown("##### **Colaboradores Cadastrados:**")
+    st.dataframe(st.session_state['colaboradores'], use_container_width=True)
 
 else:
     st.title(menu_selecionado)
     st.info("Módulo em desenvolvimento.")
 
 # ==========================================
-# 7. RODAPÉ FIXO
+# 8. RODAPÉ FIXO
 # ==========================================
 st.markdown("""
     <div class="custom-footer">
