@@ -14,7 +14,6 @@ st.set_page_config(
 # ==========================================
 # 2. INICIALIZAÇÃO DE ESTADOS (SESSÃO)
 # ==========================================
-# Repositório de Pastas
 if 'pastas_revisadas' not in st.session_state:
     st.session_state['pastas_revisadas'] = {
         "Auro": {},
@@ -22,7 +21,6 @@ if 'pastas_revisadas' not in st.session_state:
         "Gabriely": {}
     }
 
-# Cadastro Inicial de Colaboradores (Exemplo de Teste)
 if 'colaboradores' not in st.session_state:
     st.session_state['colaboradores'] = [
         {"nome": "Rodrigo Galdino Bento", "funcao": "Técnico em Segurança do Trabalho (TST)", "setor": "EQUIPE PLANTIO DE BATATAS"},
@@ -32,7 +30,6 @@ if 'colaboradores' not in st.session_state:
         {"nome": "Alessandro Pires Ribeiro", "funcao": "Trab. Rural Masc.", "setor": "EQUIPE PLANTIO DE BATATAS"}
     ]
 
-# Lista de DDS Criados
 if 'historico_dds' not in st.session_state:
     st.session_state['historico_dds'] = []
 
@@ -76,7 +73,6 @@ st.markdown("""
     .top-header-sub { color: #94a3b8; font-size: 0.78rem; margin: 0; }
     .top-header-user { color: #ffffff; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
 
-    /* Estilo da Folha Padrão de DDS */
     .dds-paper {
         background-color: #ffffff;
         border: 2px solid #000000;
@@ -166,24 +162,26 @@ st.markdown("""
 if menu_selecionado == "📝 Emissão de DDS":
     st.title("📝 Gerador de DDS (Registro de Treinamento)")
     
+    opcoes_setor = ["EQUIPE PLANTIO DE BATATAS", "EQUIPE DE COLHEITA", "ADMINISTRATIVO", "MECANIZAÇÃO"]
+    
     with st.form("form_dds"):
         st.subheader("1. Informações do Treinamento")
         col_d1, col_d2, col_d3 = st.columns(3)
         
         with col_d1:
-            setor = st.selectbox("Setor / Equipe:", ["EQUIPE PLANTIO DE BATATAS", "EQUIPE DE COLHEITA", "ADMINISTRATIVO", "MECANIZAÇÃO"])[cite: 10]
-            instrutor = st.text_input("Instrutor(es):", value="Rodrigo Galdino Bento - TST")[cite: 10]
+            setor = st.selectbox("Setor / Equipe:", opcoes_setor)
+            instrutor = st.text_input("Instrutor(es):", value="Rodrigo Galdino Bento - TST")
             
         with col_d2:
-            data_dds = st.date_input("Data do Treinamento:", datetime.date.today())[cite: 10]
-            carga_horaria = st.text_input("Carga Horária:", value="15 min")[cite: 10]
+            data_dds = st.date_input("Data do Treinamento:", datetime.date.today())
+            carga_horaria = st.text_input("Carga Horária:", value="15 min")
             
         with col_d3:
             responsavel_salvar = st.selectbox("Salvar na pasta de:", ["Auro", "Hayato", "Gabriely"])
         
         assuntos = st.text_area(
             "Assuntos Abordados:",
-            value="CUIDADOS E PROCEDIMENTOS CORRETOS DURANTE O PLANTIO; USO CORRETO DE EPIS, ATENÇÃO DURANTE ATIVIDADES PLANTIO E MANUTENÇÕES, CUIDADOS COM USO DE AGROTÓXICOS."[cite: 10],
+            value="CUIDADOS E PROCEDIMENTOS CORRETOS DURANTE O PLANTIO; USO CORRETO DE EPIS, ATENÇÃO DURANTE ATIVIDADES PLANTIO E MANUTENÇÕES, CUIDADOS COM USO DE AGROTÓXICOS.",
             height=80
         )
         
@@ -193,12 +191,10 @@ if menu_selecionado == "📝 Emissão de DDS":
         funcoes_disponiveis = list(set([c["funcao"] for c in st.session_state['colaboradores']]))
         funcoes_selecionadas = st.multiselect("Filtrar por Função(ões):", options=funcoes_disponiveis, default=funcoes_disponiveis)
         
-        # Filtrar colaboradores ativos pelas funções selecionadas
         colabs_filtrados = [c for c in st.session_state['colaboradores'] if c["funcao"] in funcoes_selecionadas]
         
         st.markdown("##### **Lista de Presença:**")
         
-        # Checkboxes de presença
         presencas = {}
         cols_pres = st.columns(2)
         for idx, colab in enumerate(colabs_filtrados):
@@ -207,16 +203,14 @@ if menu_selecionado == "📝 Emissão de DDS":
                 f"{colab['nome']} - *{colab['funcao']}*", 
                 value=True, 
                 key=f"pres_{idx}"
-            )[cite: 10]
+            )
             
         gerar_btn = st.form_submit_button("📄 Gerar e Imprimir Registro de DDS")
 
-    # Exibição do Documento Formatado estilo Folha Oficial
     if gerar_btn:
         st.markdown("---")
         st.success("DDS gerado com sucesso!")
         
-        # Tabela HTML para simular a folha física da imagem
         html_folha = f"""
         <div class="dds-paper">
             <table class="dds-header-table">
@@ -271,7 +265,6 @@ if menu_selecionado == "📝 Emissão de DDS":
         
         st.markdown(html_folha, unsafe_allow_html=True)
         
-        # Salvar automaticamente no estado do repositório
         nome_doc = f"DDS_{data_dds.strftime('%Y%m%d')}_{setor.replace(' ', '_')}.pdf"
         if "DDS_Emitidos" not in st.session_state['pastas_revisadas'][responsavel_salvar]:
             st.session_state['pastas_revisadas'][responsavel_salvar]["DDS_Emitidos"] = []
