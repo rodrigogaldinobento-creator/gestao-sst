@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Inicializar o repositório de pastas e arquivos
+# Inicializar o repositório de pastas e arquivos no session_state
 if 'pastas_revisadas' not in st.session_state:
     st.session_state['pastas_revisadas'] = {
         "Auro": {},
@@ -19,35 +19,41 @@ if 'pastas_revisadas' not in st.session_state:
     }
 
 # ==========================================
-# 2. ESTILIZAÇÃO CSS CUSTOMIZADA (SEM OCULTAR A SIDEBAR)
+# 2. ESTILIZAÇÃO CSS CUSTOMIZADA (FORÇA EXIBIÇÃO DA SIDEBAR)
 # ==========================================
 st.markdown("""
     <style>
-    /* Oculta os cabeçalhos padrão do Streamlit */
+    /* Oculta apenas menus/rodapés padrão sem esconder botões do sistema */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* Garante exibição da sidebar */
-    section[data-testid="stSidebar"] {
+    /* FORÇA A BARRA LATERAL A FICAR SEMPRE VISÍVEL E ABERTA */
+    [data-testid="stSidebar"] {
+        display: block !important;
+        visibility: visible !important;
+        transform: none !important;
         background-color: #0d1b2a !important;
-        width: 280px !important;
+        min-width: 280px !important;
+        max-width: 280px !important;
     }
     
-    section[data-testid="stSidebar"] * {
+    /* Ajusta a margem do conteúdo principal para não sobrepor a barra lateral */
+    .main .block-container {
+        margin-left: 280px !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 3rem !important;
+        max-width: calc(100% - 280px) !important;
+    }
+
+    /* Cores e textos da Sidebar */
+    [data-testid="stSidebar"] * {
         color: #ffffff !important;
     }
-
-    .block-container {
-        padding-top: 1rem !important;
-        padding-bottom: 3rem !important;
-    }
-
-    /* Campos e Botões na Sidebar */
-    section[data-testid="stSidebar"] input {
+    [data-testid="stSidebar"] input {
         color: #000000 !important;
     }
-    section[data-testid="stSidebar"] .stButton > button {
+    [data-testid="stSidebar"] .stButton > button {
         background-color: #1b3a4b;
         color: #ffffff !important;
         border: 1px solid #274c5e;
@@ -59,9 +65,7 @@ st.markdown("""
     .top-header {
         background-color: #0b1a2a;
         padding: 10px 20px;
-        margin-top: -1rem;
-        margin-left: -5rem;
-        margin-right: -5rem;
+        margin-top: -0.5rem;
         margin-bottom: 20px;
         display: flex;
         align-items: center;
@@ -121,7 +125,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. BARRA LATERAL (SIDEBAR)
+# 3. BARRA LATERAL (SIDEBAR FIXA)
 # ==========================================
 with st.sidebar:
     st.markdown("### 🌾 Lavouras Hasegawa")
