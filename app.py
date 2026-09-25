@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import datetime
 
 # ==========================================
@@ -30,11 +31,8 @@ if 'colaboradores' not in st.session_state:
         {"nome": "Alessandro Pires Ribeiro", "funcao": "Trab. Rural Masc.", "setor": "EQUIPE PLANTIO DE BATATAS"}
     ]
 
-if 'historico_dds' not in st.session_state:
-    st.session_state['historico_dds'] = []
-
 # ==========================================
-# 3. ESTILIZAÇÃO CSS CUSTOMIZADA
+# 3. ESTILIZAÇÃO CSS CUSTOMIZADA (NATURAL E SEGURA)
 # ==========================================
 st.markdown("""
     <style>
@@ -42,27 +40,29 @@ st.markdown("""
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
+    /* Customização da Sidebar */
     [data-testid="stSidebar"] {
-        display: block !important;
-        visibility: visible !important;
         background-color: #0d1b2a !important;
-        min-width: 280px !important;
-        max-width: 280px !important;
     }
     [data-testid="stSidebar"] * {
         color: #ffffff !important;
     }
-    .main .block-container {
-        margin-left: 280px !important;
-        padding-top: 0.5rem !important;
-        padding-bottom: 3rem !important;
-        max-width: calc(100% - 280px) !important;
+    [data-testid="stSidebar"] input {
+        color: #000000 !important;
+    }
+    [data-testid="stSidebar"] .stButton > button {
+        background-color: #1b3a4b;
+        color: #ffffff !important;
+        border: 1px solid #274c5e;
+        border-radius: 6px;
+        width: 100%;
     }
 
+    /* Cabeçalho Superior Fixo */
     .top-header {
         background-color: #0b1a2a;
         padding: 10px 20px;
-        margin-top: -0.5rem;
+        margin-top: -1rem;
         margin-bottom: 20px;
         display: flex;
         align-items: center;
@@ -73,36 +73,7 @@ st.markdown("""
     .top-header-sub { color: #94a3b8; font-size: 0.78rem; margin: 0; }
     .top-header-user { color: #ffffff; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
 
-    .dds-paper {
-        background-color: #ffffff;
-        border: 2px solid #000000;
-        padding: 20px;
-        color: #000000 !important;
-        font-family: Arial, sans-serif;
-        margin-top: 15px;
-    }
-    .dds-header-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 15px;
-    }
-    .dds-header-table td {
-        border: 1px solid #000;
-        padding: 6px 10px;
-        text-align: center;
-    }
-    .dds-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-    .dds-table th, .dds-table td {
-        border: 1px solid #000;
-        padding: 6px;
-        font-size: 0.85rem;
-        text-align: left;
-    }
-
+    /* Rodapé Fixo */
     .custom-footer {
         position: fixed; bottom: 0; left: 0; width: 100%;
         background-color: #f8fafc; border-top: 1px solid #e2e8f0;
@@ -139,6 +110,9 @@ with st.sidebar:
         index=1,
         label_visibility="collapsed"
     )
+    
+    if st.button("🚪 Sair"):
+        st.info("Sessão finalizada.")
 
 # ==========================================
 # 5. CABEÇALHO SUPERIOR
@@ -211,60 +185,74 @@ if menu_selecionado == "📝 Emissão de DDS":
         st.markdown("---")
         st.success("DDS gerado com sucesso!")
         
-        html_folha = f"""
-        <div class="dds-paper">
-            <table class="dds-header-table">
-                <tr>
-                    <td style="width: 20%; font-weight: bold;">LAVOURAS HASEGAWA</td>
-                    <td style="width: 60%; font-weight: bold;">
-                        REGISTRO DE TREINAMENTO PADRÃO<br>
-                        <small>TIPO DE TREINAMENTO: DDS</small>
-                    </td>
-                    <td style="width: 20%; font-weight: bold;">SEGURANÇA DO TRABALHO</td>
-                </tr>
-            </table>
-            
-            <table class="dds-table">
-                <tr>
-                    <td colspan="3"><b>ASSUNTOS ABORDADOS:</b> {assuntos}</td>
-                    <td><b>SETOR:</b> {setor}</td>
-                </tr>
-                <tr>
-                    <td style="width: 40%;"><b>INSTRUTOR(ES):</b> {instrutor}</td>
-                    <td style="width: 20%;"><b>DATA:</b> {data_dds.strftime('%d/%m/%Y')}</td>
-                    <td colspan="2" style="width: 40%;"><b>CARGA HORÁRIA:</b> {carga_horaria}</td>
-                </tr>
-            </table>
-
-            <table class="dds-table">
-                <thead>
-                    <tr style="background-color: #f2f2f2;">
-                        <th style="width: 45%;">Nome do Colaborador</th>
-                        <th style="width: 35%;">Função</th>
-                        <th style="width: 20%;">Assinatura</th>
-                    </tr>
-                </thead>
-                <tbody>
-        """
-        
+        # Construção da lista de linhas da tabela
+        linhas_tabela = ""
         for colab in colabs_filtrados:
             if presencas.get(colab["nome"]):
-                html_folha += f"""
+                linhas_tabela += f"""
                 <tr>
-                    <td>{colab['nome']}</td>
-                    <td>{colab['funcao']}</td>
-                    <td style="text-align: center; color: #888;">___________________</td>
+                    <td style="border: 1px solid #000; padding: 6px;">{colab['nome']}</td>
+                    <td style="border: 1px solid #000; padding: 6px;">{colab['funcao']}</td>
+                    <td style="border: 1px solid #000; padding: 6px; text-align: center; color: #888;">___________________</td>
                 </tr>
                 """
+        
+        # HTML completo renderizado com iframe isolado
+        documento_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; background-color: #fff; margin: 0; padding: 10px; }}
+                .paper {{ border: 2px solid #000; padding: 15px; background: #fff; }}
+                table {{ width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }}
+                th, td {{ border: 1px solid #000; padding: 6px; text-align: left; }}
+                .header-tbl td {{ text-align: center; font-weight: bold; }}
+            </style>
+        </head>
+        <body>
+            <div class="paper">
+                <table class="header-tbl">
+                    <tr>
+                        <td style="width: 25%;">LAVOURAS HASEGAWA</td>
+                        <td style="width: 50%;">REGISTRO DE TREINAMENTO PADRÃO<br><small>TIPO DE TREINAMENTO: DDS</small></td>
+                        <td style="width: 25%;">SEGURANÇA DO TRABALHO</td>
+                    </tr>
+                </table>
                 
-        html_folha += """
-                </tbody>
-            </table>
-        </div>
+                <table>
+                    <tr>
+                        <td colspan="3"><b>ASSUNTOS ABORDADOS:</b> {assuntos}</td>
+                        <td><b>SETOR:</b> {setor}</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 40%;"><b>INSTRUTOR(ES):</b> {instrutor}</td>
+                        <td style="width: 20%;"><b>DATA:</b> {data_dds.strftime('%d/%m/%Y')}</td>
+                        <td colspan="2" style="width: 40%;"><b>CARGA HORÁRIA:</b> {carga_horaria}</td>
+                    </tr>
+                </table>
+
+                <table>
+                    <thead>
+                        <tr style="background-color: #f2f2f2;">
+                            <th style="width: 45%;">Nome do Colaborador</th>
+                            <th style="width: 35%;">Função</th>
+                            <th style="width: 20%;">Assinatura</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {linhas_tabela}
+                    </tbody>
+                </table>
+            </div>
+        </body>
+        </html>
         """
         
-        st.markdown(html_folha, unsafe_allow_html=True)
+        # Exibe a folha formatada usando componente HTML limpo
+        components.html(documento_html, height=500, scrolling=True)
         
+        # Salva o arquivo no repositório
         nome_doc = f"DDS_{data_dds.strftime('%Y%m%d')}_{setor.replace(' ', '_')}.pdf"
         if "DDS_Emitidos" not in st.session_state['pastas_revisadas'][responsavel_salvar]:
             st.session_state['pastas_revisadas'][responsavel_salvar]["DDS_Emitidos"] = []
