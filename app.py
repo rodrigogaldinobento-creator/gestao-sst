@@ -1,16 +1,7 @@
-
 import streamlit as st
 import streamlit.components.v1 as components
 import datetime
-st.markdown("""
-    <style>
-    /* Mostra a setinha de abrir a sidebar no topo esquerdo caso ela recolha */
-    [data-testid="stSidebarCollapsedControl"] {
-        display: block !important;
-        color: #0b1a2a !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
+
 # ==========================================
 # 1. CONFIGURAÇÃO DA PÁGINA
 # ==========================================
@@ -41,15 +32,25 @@ if 'colaboradores' not in st.session_state:
     ]
 
 # ==========================================
-# 3. ESTILIZAÇÃO CSS CUSTOMIZADA (NATURAL E SEGURA)
+# 3. ESTILIZAÇÃO CSS CUSTOMIZADA (CORREÇÃO DA SIDEBAR)
 # ==========================================
 st.markdown("""
     <style>
+    /* Oculta menus padrão, mas MANTÉM o botão de abrir/fechar a sidebar visível */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;}
     
-    /* Customização da Sidebar */
+    /* Garante que o botão para expandir/recolher a barra lateral esteja visível no topo esquerdo */
+    [data-testid="stSidebarCollapsedControl"] {
+        display: block !important;
+        visibility: visible !important;
+        color: #ffffff !important;
+        background-color: #0d1b2a !important;
+        border-radius: 4px;
+        z-index: 999999 !important;
+    }
+
+    /* Estilização da Sidebar Escura */
     [data-testid="stSidebar"] {
         background-color: #0d1b2a !important;
     }
@@ -67,7 +68,7 @@ st.markdown("""
         width: 100%;
     }
 
-    /* Cabeçalho Superior Fixo */
+    /* Cabeçalho Superior */
     .top-header {
         background-color: #0b1a2a;
         padding: 10px 20px;
@@ -194,7 +195,6 @@ if menu_selecionado == "📝 Emissão de DDS":
         st.markdown("---")
         st.success("DDS gerado com sucesso!")
         
-        # Construção da lista de linhas da tabela
         linhas_tabela = ""
         for colab in colabs_filtrados:
             if presencas.get(colab["nome"]):
@@ -206,7 +206,6 @@ if menu_selecionado == "📝 Emissão de DDS":
                 </tr>
                 """
         
-        # HTML completo renderizado com iframe isolado
         documento_html = f"""
         <!DOCTYPE html>
         <html>
@@ -258,10 +257,8 @@ if menu_selecionado == "📝 Emissão de DDS":
         </html>
         """
         
-        # Exibe a folha formatada usando componente HTML limpo
         components.html(documento_html, height=500, scrolling=True)
         
-        # Salva o arquivo no repositório
         nome_doc = f"DDS_{data_dds.strftime('%Y%m%d')}_{setor.replace(' ', '_')}.pdf"
         if "DDS_Emitidos" not in st.session_state['pastas_revisadas'][responsavel_salvar]:
             st.session_state['pastas_revisadas'][responsavel_salvar]["DDS_Emitidos"] = []
