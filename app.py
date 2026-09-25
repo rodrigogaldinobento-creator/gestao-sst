@@ -32,15 +32,14 @@ if 'colaboradores' not in st.session_state:
     ]
 
 # ==========================================
-# 3. ESTILIZAÇÃO CSS CUSTOMIZADA (CORREÇÃO DA SIDEBAR)
+# 3. ESTILIZAÇÃO CSS CUSTOMIZADA
 # ==========================================
 st.markdown("""
     <style>
-    /* Oculta menus padrão, mas MANTÉM o botão de abrir/fechar a sidebar visível */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     
-    /* Garante que o botão para expandir/recolher a barra lateral esteja visível no topo esquerdo */
+    /* Botão de abrir/fechar a barra lateral */
     [data-testid="stSidebarCollapsedControl"] {
         display: block !important;
         visibility: visible !important;
@@ -68,7 +67,7 @@ st.markdown("""
         width: 100%;
     }
 
-    /* Cabeçalho Superior */
+    /* Cabeçalho Superior Fixo */
     .top-header {
         background-color: #0b1a2a;
         padding: 10px 20px;
@@ -94,11 +93,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. BARRA LATERAL (SIDEBAR)
+# 4. BARRA LATERAL (SIDEBAR COM LOGO DEDICADO)
 # ==========================================
 with st.sidebar:
-    st.markdown("### 🌾 Lavouras Hasegawa")
-    st.markdown("**Gestão de SST**")
+    # Tenta carregar o logótipo oficial cadastrado no GitHub (Logo.png)
+    try:
+        st.image("Logo.png", use_container_width=True)
+    except:
+        st.markdown("### 🌾 **Lavouras Hasegawa**")
+        
+    st.markdown("#### **Gestão de SST**")
     st.caption("👤 Usuário: **Rodrigo**")
     
     if st.button("🔄 Recarregar Sistema"):
@@ -117,7 +121,7 @@ with st.sidebar:
             "📤 Upload de Documentos",
             "♻️ Restauração (Setor Oculto)"
         ],
-        index=1,
+        index=2,
         label_visibility="collapsed"
     )
     
@@ -297,12 +301,104 @@ elif menu_selecionado == "👥 Cadastro de Colaboradores":
     st.markdown("##### **Colaboradores Cadastrados:**")
     st.dataframe(st.session_state['colaboradores'], use_container_width=True)
 
+# ==========================================
+# 8. MÓDULO: DOCUMENTOS REVISADOS
+# ==========================================
+elif menu_selecionado == "📂 Documentos Revisados":
+    st.title("📁 Repositório de Documentos Revisados")
+    
+    with st.expander("➕ Criar Nova Pasta em Revisadas"):
+        col_pai, col_nome, col_btn = st.columns([2, 3, 1])
+        
+        with col_pai:
+            pasta_pai = st.selectbox("Pasta Principal (Responsável):", ["Auro", "Hayato", "Gabriely"], key="pai_criar")
+            
+        with col_nome:
+            nova_subpasta = st.text_input("Nome da Nova Pasta:")
+            
+        with col_btn:
+            st.write("")
+            st.write("")
+            if st.button("Criar Pasta", use_container_width=True):
+                nome_limpo = nova_subpasta.strip()
+                if nome_limpo:
+                    if nome_limpo not in st.session_state['pastas_revisadas'][pasta_pai]:
+                        st.session_state['pastas_revisadas'][pasta_pai][nome_limpo] = []
+                        st.success(f"Pasta '{nome_limpo}' criada em {pasta_pai}!")
+                        st.rerun()
+                    else:
+                        st.warning("Esta pasta já existe.")
+                else:
+                    st.error("Digite um nome válido.")
+
+    st.markdown("##### **Selecione a Categoria/Pasta:**")
+    
+    col_resp, col_sub = st.columns(2)
+    
+    with col_resp:
+        responsavel_sel = st.selectbox("Pasta Principal (Responsável):", ["Auro", "Hayato", "Gabriely"], key="resp_ver")
+        
+    with col_sub:
+        subpastas_existentes = list(st.session_state['pastas_revisadas'][responsavel_sel].keys())
+        if subpastas_existentes:
+            subpasta_sel = st.selectbox(f"Subpasta de {responsavel_sel}:", options=subpastas_existentes)
+        else:
+            subpasta_sel = None
+            st.selectbox(f"Subpasta de {responsavel_sel}:", options=["Nenhuma pasta criada"], disabled=True)
+
+    st.markdown("---")
+
+    if subpasta_sel:
+        st.markdown(f"#### 📂 Arquivos em: **{responsavel_sel} / {subpasta_sel}**")
+        arquivos = st.session_state['pastas_revisadas'][responsavel_sel][subpasta_sel]
+        
+        if arquivos:
+            for arq in arquivos:
+                st.markdown(f"📄 **{arq['nome']}**")
+        else:
+            st.info("Nenhum arquivo encontrado nesta pasta.")
+    else:
+        st.info(f"Crie uma pasta em '{responsavel_sel}' para começar a enviar e visualizar documentos.")
+
+# ==========================================
+# 9. MÓDULO: UPLOAD DE DOCUMENTOS
+# ==========================================
+elif menu_selecionado == "📤 Upload de Documentos":
+    st.title("📤 Envio de Documentos")
+    
+    col_u1, col_u2 = st.columns(2)
+    
+    with col_u1:
+        resp_upload = st.selectbox("Selecione o Responsável:", ["Auro", "Hayato", "Gabriely"], key="upload_resp")
+        
+    with col_u2:
+        subpastas_upload = list(st.session_state['pastas_revisadas'][resp_upload].keys())
+        if subpastas_upload:
+            sub_upload = st.selectbox(f"Selecione a Pasta de Destino:", options=subpastas_upload, key="upload_sub")
+        else:
+            sub_upload = None
+            st.selectbox("Selecione a Pasta de Destino:", options=["Nenhuma pasta cadastrada"], disabled=True)
+            st.warning(f"Crie primeiro uma pasta dentro de '{resp_upload}' para enviar arquivos.")
+
+    if sub_upload:
+        uploaded_files = st.file_uploader(
+            f"Escolha os arquivos para anexar em {resp_upload} / {sub_upload}:",
+            accept_multiple_files=True
+        )
+        
+        if uploaded_files:
+            if st.button("Confirmar e Salvar Documentos"):
+                for file in uploaded_files:
+                    dados_arquivo = {"nome": file.name, "tamanho": file.size}
+                    st.session_state['pastas_revisadas'][resp_upload][sub_upload].append(dados_arquivo)
+                st.success(f"{len(uploaded_files)} arquivo(s) enviado(s) com sucesso para {resp_upload} / {sub_upload}!")
+
 else:
     st.title(menu_selecionado)
     st.info("Módulo em desenvolvimento.")
 
 # ==========================================
-# 8. RODAPÉ FIXO
+# 10. RODAPÉ FIXO
 # ==========================================
 st.markdown("""
     <div class="custom-footer">
