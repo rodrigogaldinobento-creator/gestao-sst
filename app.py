@@ -1,3 +1,7 @@
+
+import streamlit as st
+import streamlit.components.v1 as components
+import datetime
 st.markdown("""
     <style>
     /* Mostra a setinha de abrir a sidebar no topo esquerdo caso ela recolha */
@@ -7,10 +11,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-import streamlit as st
-import streamlit.components.v1 as components
-import datetime
-
 # ==========================================
 # 1. CONFIGURAÇÃO DA PÁGINA
 # ==========================================
