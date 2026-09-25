@@ -1,3 +1,12 @@
+st.markdown("""
+    <style>
+    /* Mostra a setinha de abrir a sidebar no topo esquerdo caso ela recolha */
+    [data-testid="stSidebarCollapsedControl"] {
+        display: block !important;
+        color: #0b1a2a !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 import streamlit as st
 import streamlit.components.v1 as components
 import datetime
